@@ -21,12 +21,13 @@ class Mutex {
 
         this._db = new aws.DynamoDB();
         this._dbc = new aws.DynamoDB.DocumentClient();
+        this._tableName = opts.awsConfig.tableName;
 
-        this._db.describeTable({ TableName : opts.awsConfig.tableName }, err => {
+        this._db.describeTable({ TableName : this._tableName }, err => {
             if(err && err.code === 'ResourceNotFoundException') {
 
                 this._db.createTable({
-                    TableName : opts.awsConfig.tableName,
+                    TableName : this._tableName,
                     AttributeDefinitions : [
                         { AttributeName : 'key', AttributeType : 'S' },
                         { AttributeName : 'expire', AttributeType : 'N' }
@@ -44,11 +45,47 @@ class Mutex {
         });
     }
 
-    lock() {
+    lock(key, timeout, callback) {
+
+        let config = {
+          TableName : this._tableName,
+              AttributesToGet : ['expire'],
+          Key : {
+              key : key
+          }
+        };
+
+        let newMutex = {
+            TableName : this._tableName,
+            Item : {
+                key : key,
+                expire : 0
+            }
+        };
+
+            this._dbc.get(config, (err, result) => {
+
+                if(!result.Item) {
+                    newMutex.Item.expire = Date.now() + timeout;
+                    this._dbc.put(newMutex, (err) => console.log(err));
+                    this._unlock(key);
+                }
+                else {
+
+                    let expire = result.Item.expire;
+                    if(Date.now() >= expire) {
+                        newMutex.Item.expire = Date.now() + timeout;
+                        this._dbc.put(newMutex, err => console.log(err));
+                        this._unlock(key);
+                    }
+
+                }
+
+            });
 
     }
 
-    unlock() {
+    _unlock(key) {
 
     }
 }
@@ -60,5 +97,6 @@ let a = new Mutex({    awsConfig : {
     tableName : 'mutex'
 }});
 
+a.lock('asd', 10000);
 
 module.exports = Mutex;
