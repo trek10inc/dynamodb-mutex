@@ -1,0 +1,18 @@
+{
+  "name": "mutex-dynamodb",
+  "version": "1.0.0",
+  "description": "Mutex with DynamoDB",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Aka Kherkeladze <akaki.kherkeladze@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.3.16"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3"
+  }
+}
