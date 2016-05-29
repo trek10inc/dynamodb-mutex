@@ -14,21 +14,21 @@ class Mutex {
     constructor(opts) {
         aws.config.update({
 
-            region : opts.awsConfig.region,
+            region : opts.region,
             apiVersions: {
                 dynamodb: '2012-08-10'
             },
 
             credentials: new aws.Credentials({
-                accessKeyId: opts.awsConfig.accessKeyId,
-                secretAccessKey: opts.awsConfig.secretAccessKey
+                accessKeyId: opts.accessKeyId,
+                secretAccessKey: opts.secretAccessKey
             })
 
         });
 
         this._db = new aws.DynamoDB();
         this._dbc = new aws.DynamoDB.DocumentClient();
-        this._tableName = opts.awsConfig.tableName;
+        this._tableName = opts.tableName;
 
         this._db.describeTable({ TableName : this._tableName }, err => {
             if(err && err.code === 'ResourceNotFoundException') {
