@@ -2,6 +2,13 @@
 
 const aws = require('aws-sdk');
 
+
+/**
+ * Mutex class
+ * @param {Object} AWS configuration parameters
+ *
+ */
+
 class Mutex {
 
     constructor(opts) {
@@ -45,58 +52,77 @@ class Mutex {
         });
     }
 
-    lock(key, timeout, callback) {
+    /**
+     * Write Lock
+     * @access private
+     * @param {string}   key
+     * @param {number} timeout
+     * @param {function}  callback
+     */
 
-        let config = {
-          TableName : this._tableName,
-              AttributesToGet : ['expire'],
-          Key : {
-              key : key
-          }
-        };
+    _writeLock(key, timeout, callback) {
 
-        let newMutex = {
+      let now = Date.now();
+      let item = {
+          key : key,
+          expire : now + timeout
+      };
+
+        this._dbc.put({
             TableName : this._tableName,
-            Item : {
-                key : key,
-                expire : 0
+            Item: item,
+            ConditionExpression: '#key <> :key OR (#key = :key AND #expire < :expire)',
+            ExpressionAttributeNames: {
+                '#key': 'key',
+                '#expire': 'expire'
+            },
+            ExpressionAttributeValues: {
+                ':key': item.key,
+                ':expire': now
             }
-        };
+        }, err => callback(!err));
+    }
 
-            this._dbc.get(config, (err, result) => {
+    /**
+     * Acquire Lock
+     * @access public
+     * @param {string} key
+     * @param {number} timeout
+     * @param {function} callback
+     */
 
-                if(!result.Item) {
-                    newMutex.Item.expire = Date.now() + timeout;
-                    this._dbc.put(newMutex, (err) => console.log(err));
+    acquireLock(key, timeout, callback) {
+
+        let runner = setInterval( () => {
+
+            this._writeLock(key, timeout, (success) => {
+
+                console.log('LOCKED:', success);
+                if(success){
+                    clearInterval(runner);
+                    callback();
                     this._unlock(key);
                 }
-                else {
-
-                    let expire = result.Item.expire;
-                    if(Date.now() >= expire) {
-                        newMutex.Item.expire = Date.now() + timeout;
-                        this._dbc.put(newMutex, err => console.log(err));
-                        this._unlock(key);
-                    }
-
-                }
-
             });
+        }, 1000);
 
     }
+
+    /**
+     * Unlock
+     * @access private
+     * @param {string} key
+     */
 
     _unlock(key) {
-
+        let params = {
+            TableName : this._tableName,
+            Key: {
+                key: key
+            }
+        };
+        this._dbc.delete(params, err => err);
     }
 }
-
-let a = new Mutex({    awsConfig : {
-    accessKeyId : '',
-    secretAccessKey : '',
-    region : 'us-west-2',
-    tableName : 'mutex'
-}});
-
-a.lock('asd', 10000);
 
 module.exports = Mutex;
