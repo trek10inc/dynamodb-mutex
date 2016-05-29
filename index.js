@@ -2,14 +2,13 @@
 
 const aws = require('aws-sdk');
 
-
-/**
- * Mutex class
- * @param {Object} AWS configuration parameters
- *
- */
-
 class Mutex {
+
+    /**
+     * Mutex class constructor
+     * @param {Object} opts AWS configuration parameters
+     *
+     */
 
     constructor(opts) {
         aws.config.update({
@@ -55,12 +54,13 @@ class Mutex {
     /**
      * Write Lock
      * @access private
-     * @param {string}   key
+     * @param {string} key
      * @param {number} timeout
-     * @param {function}  callback
+     * @param {object} runner
+     * @param {function} callback
      */
 
-    _writeLock(key, timeout, callback) {
+    _writeLock(key, timeout, runner, callback) {
 
       let now = Date.now();
       let item = {
@@ -80,7 +80,10 @@ class Mutex {
                 ':key': item.key,
                 ':expire': now
             }
-        }, err => callback(!err));
+        }, err => {
+            if(!err) clearInterval(runner);
+            callback(!err);
+        });
     }
 
     /**
@@ -95,15 +98,10 @@ class Mutex {
 
         let runner = setInterval( () => {
 
-            this._writeLock(key, timeout, (success) => {
-
-                console.log('LOCKED:', success);
-                if(success){
-                    clearInterval(runner);
-                    callback();
-                    this._unlock(key);
-                }
+            this._writeLock(key, timeout, runner, (success) => {
+                if(success) callback(() => this._unlock(key));
             });
+
         }, 1000);
 
     }
