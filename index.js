@@ -11,27 +11,27 @@ class Mutex {
      */
 
     constructor(opts) {
-        aws.config.update({
-
-            region : opts.region,
-            apiVersions: {
-                dynamodb: '2012-08-10'
-            },
-
-            credentials: new aws.Credentials({
-                accessKeyId: opts.accessKeyId,
-                secretAccessKey: opts.secretAccessKey
-            })
-
-        });
-
+        
+        if(opts.awsConfig) {
+            aws.config.update({
+                region : opts.awsConfig.region,
+                apiVersions: {
+                    dynamodb: '2012-08-10'
+                },
+                credentials: new aws.Credentials({
+                    accessKeyId:  opts.awsConfig.accessKeyId,
+                    secretAccessKey: opts.awsConfig.accessKey
+                })
+            });
+        }
         this._db = new aws.DynamoDB();
         this._dbc = new aws.DynamoDB.DocumentClient();
-        this._tableName = opts.tableName;
+
+        this._tableName = opts.tableName || 'mutex-table';
+        this._retryIntervalTime = opts.retryInterval || 1000;
 
         this._db.describeTable({ TableName : this._tableName }, err => {
             if(err && err.code === 'ResourceNotFoundException') {
-
                 this._db.createTable({
                     TableName : this._tableName,
                     AttributeDefinitions : [
@@ -46,7 +46,7 @@ class Mutex {
                         ReadCapacityUnits: 1,
                         WriteCapacityUnits: 1
                     }
-                });
+                }, (err) => err);
             }
         });
     }
@@ -56,18 +56,16 @@ class Mutex {
      * @access private
      * @param {string} key
      * @param {number} timeout
-     * @param {object} runner
+     * @param {number} retryInterval
      * @param {function} callback
      */
 
-    _writeLock(key, timeout, runner, callback) {
-
+    _writeLock(key, timeout, retryInterval, callback) {
       let now = Date.now();
       let item = {
           key : key,
           expire : now + timeout
       };
-
         this._dbc.put({
             TableName : this._tableName,
             Item: item,
@@ -81,28 +79,28 @@ class Mutex {
                 ':expire': now
             }
         }, err => {
-            if(!err) clearInterval(runner);
+            if(!err) clearInterval(retryInterval);
             callback(!err);
         });
     }
 
     /**
-     * Acquire Lock
+     * Lock
      * @access public
      * @param {string} key
      * @param {number} timeout
      * @param {function} callback
      */
 
-    acquireLock(key, timeout, callback) {
+    lock(key, timeout, callback) {
 
-        let runner = setInterval( () => {
 
-            this._writeLock(key, timeout, runner, (success) => {
+        let retryInterval = setInterval( () => {
+            this._writeLock(key, timeout, retryInterval, (success) => {
                 if(success) callback(() => this._unlock(key));
             });
 
-        }, 1000);
+        }, this._retryIntervalTime);
 
     }
 
