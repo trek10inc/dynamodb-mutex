@@ -11,20 +11,24 @@ npm install mutex-dynamodb
 ```js
 const mutex = require( 'mutex-dynamodb' );
 
-let awsConfig = {
-        accessKeyId : 'ACCESS_KEY',
-        secretAccessKey : 'SECRET_KEY',
-        region : 'REGION',
-        tableName : 'TABLE_NAME'
-};
 
+let config = {
+    awsConfig: {
+        region: 'REGION',
+        accessKeyId: 'ACCESS_KEY_ID',
+        accessKey: 'ACCESS_KEY'
+    },
+    retryInterval: INTERVAL_TIME,
+    tableName: 'TABLE_NAME'
+};
 
 let timeout = 2000;
 
-const sampleMutex = new mutex(awsConfig);
+
+const sampleMutex = new mutex(config);
 
 
-sampleMutex.acquireLock('keyName', timeout, (unlock) => {
+sampleMutex.lock('keyName', timeout, (unlock) => {
   // DO AWESOME STUFF HERE
   unlock();
 });

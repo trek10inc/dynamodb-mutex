@@ -6,12 +6,21 @@ class Mutex {
 
     /**
      * Mutex class constructor
-     * @param {Object} opts AWS configuration parameters
+     * @param {Object} opts configuration parameters
      *
+     opts : {
+     awsConfig : {
+        region : 'REGION',
+        accessKeyId : 'ACCESS_KEY_ID',
+        accessKey : 'ACCESS_KEY'
+      },
+     retryInterval : INTERVAL_TIME,
+     tableName : 'TABLE_NAME'
+     }
      */
 
     constructor(opts) {
-        
+
         if(opts.awsConfig) {
             aws.config.update({
                 region : opts.awsConfig.region,
@@ -35,12 +44,10 @@ class Mutex {
                 this._db.createTable({
                     TableName : this._tableName,
                     AttributeDefinitions : [
-                        { AttributeName : 'key', AttributeType : 'S' },
-                        { AttributeName : 'expire', AttributeType : 'N' }
+                        { AttributeName : 'key', AttributeType : 'S' }
                     ],
                     KeySchema : [
-                        { AttributeName : 'key', KeyType : 'HASH' },
-                        { AttributeName : 'expire', KeyType : 'RANGE' }
+                        { AttributeName : 'key', KeyType : 'HASH' }
                     ],
                     ProvisionedThroughput: {
                         ReadCapacityUnits: 1,
