@@ -82,6 +82,10 @@ class Mutex {
      * @param {function} callback
      */
     lock(key, timeout, callback) {
+        if(typeof timeout === 'function') {
+            callback = timeout;
+            timeout = this._retryIntervalTime || 1000;
+        }
         let retryInterval = setInterval( () => {
             this._writeLock(key, timeout, retryInterval, (success) => {
                 if(success) callback(() => this._unlock(key));
