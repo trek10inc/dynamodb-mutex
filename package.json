@@ -1,10 +1,10 @@
 {
-  "name": "mutex-dynamodb",
-  "version": "1.1.6",
+  "name": "dynamodb-mutex",
+  "version": "1.1.7",
   "description": "Mutex with DynamoDB",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kherkeladze/mutex-dynamodb"
+    "url": "https://github.com/trek10inc/dynamodb-mutex"
   },
   "keywords": ["mutex", "dynamodb", "node.js", "node-mutex"],
 

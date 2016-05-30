@@ -1,15 +1,15 @@
-# mutex-dynamodb
+# dynamodb-mutex
 
 ## Installation : 
 
 ```
-npm install mutex-dynamodb
+npm install dynamodb-mutex
 ```
 
 
 ## How to use
 ```js
-const mutex = require( 'mutex-dynamodb' );
+const mutex = require( 'dynamodb-mutex' );
 
 
 let config = {
