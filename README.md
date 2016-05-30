@@ -13,11 +13,9 @@ const mutex = require( 'mutex-dynamodb' );
 
 
 let config = {
-    awsConfig: {
-        region: 'REGION',
-        accessKeyId: 'ACCESS_KEY_ID',
-        accessKey: 'ACCESS_KEY'
-    },
+    region: 'REGION',
+    accessKeyId: 'ACCESS_KEY_ID',
+    accessKey: 'ACCESS_KEY',
     retryInterval: INTERVAL_TIME,
     tableName: 'TABLE_NAME'
 };

@@ -9,36 +9,20 @@ class Mutex {
      * @param {Object} opts configuration parameters
      *
      opts : {
-     awsConfig : {
         region : 'REGION',
         accessKeyId : 'ACCESS_KEY_ID',
-        accessKey : 'ACCESS_KEY'
-      },
-     retryInterval : INTERVAL_TIME,
-     tableName : 'TABLE_NAME'
+        accessKey : 'ACCESS_KEY',
+        retryInterval : INTERVAL_TIME,
+        tableName : 'TABLE_NAME'
      }
      */
-
     constructor(opts) {
-
-        if(opts.awsConfig) {
-            aws.config.update({
-                region : opts.awsConfig.region,
-                apiVersions: {
-                    dynamodb: '2012-08-10'
-                },
-                credentials: new aws.Credentials({
-                    accessKeyId:  opts.awsConfig.accessKeyId,
-                    secretAccessKey: opts.awsConfig.accessKey
-                })
-            });
-        }
-        this._db = new aws.DynamoDB();
-        this._dbc = new aws.DynamoDB.DocumentClient();
-
+        this._db = new aws.DynamoDB(opts);
+        this._dbc = new aws.DynamoDB.DocumentClient(opts);
         this._tableName = opts.tableName || 'mutex-table';
         this._retryIntervalTime = opts.retryInterval || 1000;
 
+        //check if mutex table exists and create one if does not
         this._db.describeTable({ TableName : this._tableName }, err => {
             if(err && err.code === 'ResourceNotFoundException') {
                 this._db.createTable({
@@ -66,7 +50,6 @@ class Mutex {
      * @param {number} retryInterval
      * @param {function} callback
      */
-
     _writeLock(key, timeout, retryInterval, callback) {
       let now = Date.now();
       let item = {
@@ -98,17 +81,13 @@ class Mutex {
      * @param {number} timeout
      * @param {function} callback
      */
-
     lock(key, timeout, callback) {
-
-
         let retryInterval = setInterval( () => {
             this._writeLock(key, timeout, retryInterval, (success) => {
                 if(success) callback(() => this._unlock(key));
             });
 
         }, this._retryIntervalTime);
-
     }
 
     /**
@@ -116,7 +95,6 @@ class Mutex {
      * @access private
      * @param {string} key
      */
-
     _unlock(key) {
         let params = {
             TableName : this._tableName,
