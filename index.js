@@ -28,6 +28,10 @@ class Mutex {
         this._lockTimeout = options.lockTimeout || 10000;
         this._lockRetryInterval = options.lockRetryInterval || 1000;
 
+
+    }
+
+    initDB() {
         //check if mutex table exists and create one if does not
         this._db.describeTable({ TableName: this._tableName }, err => {
             if (err && err.code === 'ResourceNotFoundException') {
