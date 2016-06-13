@@ -17,6 +17,7 @@ let config = {
     accessKeyId: 'ACCESS_KEY_ID',
     accessKey: 'ACCESS_KEY',
     retryInterval: INTERVAL_TIME,
+    maxTries: 3,
     tableName: 'TABLE_NAME'
 };
 
@@ -26,9 +27,13 @@ let timeout = 2000;
 const sampleMutex = new mutex(config);
 
 
-sampleMutex.lock('keyName', timeout, (unlock) => {
-  // DO AWESOME STUFF HERE
-  unlock();
+sampleMutex.lock('keyName', timeout, (err, unlock) => {
+  if (err) {
+  	console.log('Lock failed')
+  } else {
+   // DO AWESOME STUFF HERE
+    unlock();
+  }
 });
 
 
