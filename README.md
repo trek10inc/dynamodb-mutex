@@ -19,6 +19,8 @@ let config = {
     retryInterval: INTERVAL_TIME,
     maxTries: 3,
     tableName: 'TABLE_NAME'
+    readCapacityUnits: 5, // Default 1,
+    writeCapacityUnits: 5, // Default 1
 };
 
 let timeout = 2000;

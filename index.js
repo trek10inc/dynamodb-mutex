@@ -29,6 +29,8 @@ class Mutex {
     this._lockTimeout = options.lockTimeout || 10000;
     this._maxTries = options.maxTries || 1;
     this._lockRetryInterval = options.lockRetryInterval || 1000;
+    this._readCapacityUnits = options.readCapacityUnits || 1;
+    this._writeCapacityUnits = options.writeCapacityUnits || 1;
 
 
   }
@@ -50,10 +52,9 @@ class Mutex {
             { AttributeName: this._hashKey, KeyType: 'HASH' }
           ],
 
-          //probably need to make this configurable as well...
           ProvisionedThroughput: {
-            ReadCapacityUnits: 1,
-            WriteCapacityUnits: 1
+            ReadCapacityUnits: this._readCapacityUnits,
+            WriteCapacityUnits: this._writeCapacityUnits
           }
         }, () => {
           console.log(this._tableName, 'created');
