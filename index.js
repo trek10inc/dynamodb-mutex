@@ -67,7 +67,7 @@ class Mutex {
    * Lock
    * @access public
    * @param {string} key
-   * @param {number} timeout (optional)
+   * @param {number} maxTries (optional)
    * @param {function} action
    */
   lock(key, maxTries, callback) {
