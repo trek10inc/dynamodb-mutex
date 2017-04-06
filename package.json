@@ -1,6 +1,6 @@
 {
   "name": "dynamodb-mutex",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Mutex with DynamoDB",
   "repository": {
     "type": "git",
