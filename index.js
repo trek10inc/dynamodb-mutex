@@ -79,7 +79,7 @@ class Mutex {
     console.log('acquiring lock for', key);
     this._writeLock(key, (success) => {
       if (success)
-        callback(null, () => this._unlock(key))
+        callback(null, (cb) => this._unlock(key, cb))
       else {
         maxTries--
         if (maxTries <= 0)
@@ -128,7 +128,8 @@ class Mutex {
     this._dbc.put(params, err => { callback(!err); });
   }
 
-  _unlock(key) {
+  _unlock(key, cb) {
+    cb = cb || function() {}
     let params = {
       TableName: this._tableName,
       Key: {}
@@ -137,6 +138,7 @@ class Mutex {
 
     this._dbc.delete(params, () => {
       console.log(key, 'unlocked');
+      cb()
     });
   }
 }
